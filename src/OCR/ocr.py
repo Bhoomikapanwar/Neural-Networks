@@ -14,7 +14,7 @@ def get_data():
     Y = enc.fit_transform(np.array(Y).reshape(-1,1))
 
     #split the data into training (80%) and testing (20%)
-    (X_train, X_test, Y_train, Y_test) = train_test_split(X, Y, test_size=0.20)
+    (X_train, X_test, Y_train, Y_test) = train_test_split(X, Y, test_size=0.20,random_state=42)
     return X_train.values, X_test.values, Y_train.toarray(), Y_test.toarray()
 
 
