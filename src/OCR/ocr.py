@@ -14,7 +14,7 @@ def get_data():
     Y = enc.fit_transform(np.array(Y).reshape(-1,1))
 
     #split the data into training (80%) and testing (20%)
-    (X_train, X_test, Y_train, Y_test) = train_test_split(X, Y, test_size=0.20)
+    (X_train, X_test, Y_train, Y_test) = train_test_split(X, Y, test_size=0.20,random_state=42)
     return X_train.values, X_test.values, Y_train.toarray(), Y_test.toarray()
 
 
@@ -29,7 +29,7 @@ def predictor():
     outputl = 26
 
     #Session creation
-    session = tf.InteractiveSession()
+    #session = tf.InteractiveSession()
 
     #Placeholders for inputs
     X = tf.placeholder(dtype = tf.float32, shape =[None,N])
@@ -75,59 +75,52 @@ def predictor():
     #Optimizer(Stochastic gradient extension)
 
     optimizer = tf.train.AdamOptimizer().minimize(cost)
-
-    #Calling Initialisers
-    session.run(tf.global_variables_initializer())
-
-    #Plotting
-    #plt.ion()
-    #fig = plt.figure(figsize = (10,12))
-
-    #fit neural sessionwork
-    batch_size = 500
-    mse_train = []
-    mse_test = []
-
-    epoches = 100
-    for e in range(0,epoches):
-
-        #shuffle training data
-        shuffle_indices = np.random.permutation(np.arange(len(Y_train)))
-        X_train = X_train[shuffle_indices]
-        Y_train = Y_train[shuffle_indices]
-
-        #minibatch training
-        for i in range(0,len(Y_train)//batch_size):
-            start = i*batch_size
-            batch_x = X_train[start:start+batch_size]
-            batch_y = Y_train[start:start+batch_size]
-
-            #run optimizer
-            session.run(optimizer,feed_dict={X:batch_x,Y:batch_y})
-            saver.save(session,'model_data/',global_step =100 ,write_meta_graph=False)
-            #show progress
-            if np.mod(i,50) == 0:
-                #MSE train and test
-                mse_train.append(session.run(cost,feed_dict={X:X_train,Y:Y_train}))
-                mse_test.append(session.run(cost,feed_dict={X:X_test,Y:Y_test}))
-                print('MSE Train: ', mse_train[-1])
-                print('MSE Test: ', mse_test[-1])
-                """
-                #prediction
-                pred = session.run(out,feed_dict={X:X_test})
-                print(pred.shape)
-                print(pred)
-                """
+    with tf.Session() as session:
+        #Calling Initialisers
+        session.run(tf.global_variables_initializer())
 
 
+        #fit neural sessionwork
+        batch_size = 500
+        mse_train = []
+        mse_test = []
 
-# Define the loss function
-#print(loss.eval())
-    correct_prediction = tf.equal(tf.argmax(tf.nn.softmax(output), 1), tf.argmax(Y,1))
-# Operation calculating the accuracy of our predictions
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    print(session.run(accuracy,feed_dict={X:X_test,Y:Y_test}))
-# Operation comparing prediction with true label
+        epoches = 100
+        for e in range(0,epoches):
+            #shuffle training data
+            shuffle_indices = np.random.permutation(np.arange(len(Y_train)))
+            X_train = X_train[shuffle_indices]
+            Y_train = Y_train[shuffle_indices]
+
+            #minibatch training
+            for i in range(0,len(Y_train)//batch_size):
+                start = i*batch_size
+                batch_x = X_train[start:start+batch_size]
+                batch_y = Y_train[start:start+batch_size]
+
+                #run optimizer
+                session.run(optimizer,feed_dict={X:batch_x,Y:batch_y})
+                saver.save(session,'model_data/',global_step =100 ,write_meta_graph=False)
+                #show progress
+                if np.mod(i,50) == 0:
+                    #MSE train and test
+                    mse_train.append(session.run(cost,feed_dict={X:X_train,Y:Y_train}))
+                    mse_test.append(session.run(cost,feed_dict={X:X_test,Y:Y_test}))
+                    print('MSE Train: ', mse_train[-1])
+                    print('MSE Test: ', mse_test[-1])
+                    """
+                    #prediction
+                    pred = session.run(out,feed_dict={X:X_test})
+                    print(pred.shape)
+                    print(pred)
+                    """
+
+            #print(loss.eval())
+        correct_prediction = tf.equal(tf.argmax(tf.nn.softmax(output), 1), tf.argmax(Y,1))
+        # Operation calculating the accuracy of our predictions
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        print(session.run(accuracy,feed_dict={X:X_test,Y:Y_test}))
+
 
 
 if __name__ == "__main__":
